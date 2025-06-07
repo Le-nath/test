@@ -1,4 +1,5 @@
 import random
+from constantes import DungeonAction
 
 
 class Room:
