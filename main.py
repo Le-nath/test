@@ -39,23 +39,9 @@ def combat(player, monster):
         
         action = input("\nQue voulez-vous faire? (1: Attaquer, 2: Capacité spéciale, 3: Se soigner, 4: Fuir): ")
         
-        if action == "1":
-            player.attack_monster(monster)
-            if monster.hp <= 0:
-                print(f"\n🎉 Vous avez vaincu {monster.name}!")
-                player.experience += monster.exp_reward
-                player.gold += monster.gold_reward
-                print(f"Vous gagnez {monster.exp_reward} XP et {monster.gold_reward} or!")
-                
-                if player.experience >= player.level * 100:
-                    player.experience -= player.level * 100
-                    player.level_up()
-                return True
-            
-            monster.attack_player(player)
-            
-        elif action == "2":
-            if player.use_special_ability(monster):
+        match action:
+            case "1":
+                player.attack_monster(monster)
                 if monster.hp <= 0:
                     print(f"\n🎉 Vous avez vaincu {monster.name}!")
                     player.experience += monster.exp_reward
@@ -66,17 +52,32 @@ def combat(player, monster):
                         player.experience -= player.level * 100
                         player.level_up()
                     return True
+                
                 monster.attack_player(player)
-            else:
-                continue  # Ne pas faire attaquer le monstre si la capacité n'a pas été utilisée
-            
-        elif action == "3":
-            player.heal()
-            monster.attack_player(player)
-            
-        elif action == "4":
-            print("Vous fuyez le combat!")
-            return False
+                
+            case "2":
+                if player.use_special_ability(monster):
+                    if monster.hp <= 0:
+                        print(f"\n🎉 Vous avez vaincu {monster.name}!")
+                        player.experience += monster.exp_reward
+                        player.gold += monster.gold_reward
+                        print(f"Vous gagnez {monster.exp_reward} XP et {monster.gold_reward} or!")
+                        
+                        if player.experience >= player.level * 100:
+                            player.experience -= player.level * 100
+                            player.level_up()
+                        return True
+                    monster.attack_player(player)
+                else:
+                    continue  # Ne pas faire attaquer le monstre si la capacité n'a pas été utilisée
+                
+            case "3":
+                player.heal()
+                monster.attack_player(player)
+                
+            case "4":
+                print("Vous fuyez le combat!")
+                return False
         
         if player.hp <= 0:
             print(f"\n💀 {player.name} est mort!")
@@ -139,19 +140,20 @@ def explore_dungeon(player):
         
         choice = input("Votre choix: ")
         
-        if choice == "1":
-            if dungeon.advance_room():
-                print("Vous avancez vers la prochaine salle...")
-            else:
-                print("Vous ne pouvez pas aller plus loin!")
-        
-        elif choice == "2" and dungeon.can_retreat():
-            dungeon.retreat_room()
-            print("Vous reculez vers la salle précédente...")
-        
-        elif choice == "3":
-            print("Vous quittez le donjon.")
-            return True
+        match choice:
+            case "1":
+                if dungeon.advance_room():
+                    print("Vous avancez vers la prochaine salle...")
+                else:
+                    print("Vous ne pouvez pas aller plus loin!")
+            
+            case "2" if dungeon.can_retreat():
+                dungeon.retreat_room()
+                print("Vous reculez vers la salle précédente...")
+            
+            case "3":
+                print("Vous quittez le donjon.")
+                return True
         
         # Vérifier level up
         if player.experience >= player.level * 100:
@@ -210,47 +212,49 @@ def main():
         while player.hp > 0:
             choice = main_menu()
             
-            if choice == "1":
-                player = create_new_character()
-                
-            elif choice == "2":
-                player.display_stats()
-                
-            elif choice == "3":
-                monster = create_monster(player.level)
-                combat_result = combat(player, monster)
-                if not combat_result and player.hp <= 0:
-                    break
+            match choice:
+                case "1":
+                    player = create_new_character()
                     
-            elif choice == "4":
-                dungeon_result = explore_dungeon(player)
-                if not dungeon_result and player.hp <= 0:
-                    break
+                case "2":
+                    player.display_stats()
                     
-            elif choice == "5":
-                player.hp = player.max_hp
-                print(f"{player.name} se repose et récupère tous ses PV!")
+                case "3":
+                    monster = create_monster(player.level)
+                    combat_result = combat(player, monster)
+                    if not combat_result and player.hp <= 0:
+                        break
+                        
+                case "4":
+                    dungeon_result = explore_dungeon(player)
+                    if not dungeon_result and player.hp <= 0:
+                        break
+                        
+                case "5":
+                    player.hp = player.max_hp
+                    print(f"{player.name} se repose et récupère tous ses PV!")
+                    
+                case "6":
+                    print("Merci d'avoir joué! À bientôt!")
+                    return
                 
-            elif choice == "6":
-                print("Merci d'avoir joué! À bientôt!")
-                return
-            
-            else:
-                print("Option invalide!")
+                case _:
+                    print("Option invalide!")
         
         # Le joueur est mort, afficher le menu Game Over
         if player.hp <= 0:
             game_over_choice = game_over_menu()
             
-            if game_over_choice == "1":
-                print("\n🔄 Nouvelle partie commencée!")
-                continue  # Recommencer la boucle principale
-            elif game_over_choice == "2":
-                print("Merci d'avoir joué! À bientôt!")
-                break
-            else:
-                print("Choix invalide. Fin du jeu.")
-                break
+            match game_over_choice:
+                case "1":
+                    print("\n🔄 Nouvelle partie commencée!")
+                    continue  # Recommencer la boucle principale
+                case "2":
+                    print("Merci d'avoir joué! À bientôt!")
+                    break
+                case _:
+                    print("Choix invalide. Fin du jeu.")
+                    break
 
 if __name__ == "__main__":
     main()
