@@ -1,7 +1,8 @@
 import random
 from character import Character
-from monster import Monster
+from monster import Monster, create_dungeon_monster
 from classes import get_available_classes, display_classes
+from dungeon import create_dungeon, explore_room
 
 
 
@@ -86,13 +87,88 @@ def combat(player, monster):
     
     return True
 
+def explore_dungeon(player):
+    """Fonction principale d'exploration de donjon"""
+    dungeon = create_dungeon(player.level)
+    print(f"\n🏰 Vous entrez dans: {dungeon.name}")
+    print(f"Le donjon contient {len(dungeon.rooms)} salles à explorer.")
+    
+    while not dungeon.completed:
+        current_room = dungeon.get_current_room()
+        print(f"\n--- Salle {dungeon.current_room + 1}/{len(dungeon.rooms)} ---")
+        
+        # Explorer la salle actuelle
+        explore_room(player, current_room)
+        
+        # Vérifier si c'est un combat
+        if current_room.content and current_room.content.get("type") in ["dungeon_monster", "boss_monster"]:
+            difficulty = current_room.content["difficulty"]
+            monster = create_dungeon_monster(difficulty, player.level)
+            print(f"\n⚔️ Un {monster.name} apparaît!")
+            
+            combat_result = combat(player, monster)
+            if not combat_result:
+                if player.hp <= 0:
+                    print("💀 Vous êtes mort dans le donjon...")
+                    return False
+                else:
+                    print("Vous fuyez le donjon!")
+                    return True
+        
+        # Vérifier si le joueur est mort à cause d'un piège
+        if player.hp <= 0:
+            print("💀 Vous succombez aux dangers du donjon...")
+            return False
+        
+        # Menu d'actions dans le donjon
+        if dungeon.current_room == len(dungeon.rooms) - 1:
+            print("\n🎉 Félicitations! Vous avez terminé le donjon!")
+            bonus_exp = 100 + (player.level * 20)
+            bonus_gold = 75 + (player.level * 15)
+            player.experience += bonus_exp
+            player.gold += bonus_gold
+            print(f"Récompense de fin: +{bonus_exp} XP et +{bonus_gold} or!")
+            dungeon.completed = True
+            break
+        
+        print(f"\nQue voulez-vous faire?")
+        print("1. Avancer vers la prochaine salle")
+        if dungeon.can_retreat():
+            print("2. Reculer vers la salle précédente")
+        print("3. Quitter le donjon")
+        
+        choice = input("Votre choix: ")
+        
+        if choice == "1":
+            if dungeon.advance_room():
+                print("Vous avancez vers la prochaine salle...")
+            else:
+                print("Vous ne pouvez pas aller plus loin!")
+        
+        elif choice == "2" and dungeon.can_retreat():
+            dungeon.retreat_room()
+            print("Vous reculez vers la salle précédente...")
+        
+        elif choice == "3":
+            print("Vous quittez le donjon.")
+            return True
+        
+        # Vérifier level up
+        if player.experience >= player.level * 100:
+            player.experience -= player.level * 100
+            player.level_up()
+    
+    return True
+
+
 def main_menu():
     print("\n=== JEU RPG ===")
     print("1. Créer un personnage")
     print("2. Voir les statistiques")
     print("3. Chercher un monstre")
-    print("4. Se reposer (récupère tous les PV)")
-    print("5. Quitter")
+    print("4. Explorer un donjon")
+    print("5. Se reposer (récupère tous les PV)")
+    print("6. Quitter")
     return input("Choisissez une option: ")
 
 def main():
@@ -144,10 +220,15 @@ def main():
                 break
                 
         elif choice == "4":
+            dungeon_result = explore_dungeon(player)
+            if not dungeon_result and player.hp <= 0:
+                break
+                
+        elif choice == "5":
             player.hp = player.max_hp
             print(f"{player.name} se repose et récupère tous ses PV!")
             
-        elif choice == "5":
+        elif choice == "6":
             print("Merci d'avoir joué! À bientôt!")
             break
         
