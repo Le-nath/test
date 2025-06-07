@@ -1,6 +1,7 @@
 import random
 from character import Character
 from monster import Monster
+from character_classes import get_available_classes, display_classes
 
 
 
@@ -35,7 +36,7 @@ def combat(player, monster):
         print(f"Vos PV: {player.hp}/{player.max_hp}")
         print(f"PV de {monster.name}: {monster.hp}/{monster.max_hp}")
         
-        action = input("\nQue voulez-vous faire? (1: Attaquer, 2: Se soigner, 3: Fuir): ")
+        action = input("\nQue voulez-vous faire? (1: Attaquer, 2: Capacité spéciale, 3: Se soigner, 4: Fuir): ")
         
         if action == "1":
             player.attack_monster(monster)
@@ -53,16 +54,35 @@ def combat(player, monster):
             monster.attack_player(player)
             
         elif action == "2":
+            if player.use_special_ability(monster):
+                if monster.hp <= 0:
+                    print(f"\n🎉 Vous avez vaincu {monster.name}!")
+                    player.experience += monster.exp_reward
+                    player.gold += monster.gold_reward
+                    print(f"Vous gagnez {monster.exp_reward} XP et {monster.gold_reward} or!")
+                    
+                    if player.experience >= player.level * 100:
+                        player.experience -= player.level * 100
+                        player.level_up()
+                    return True
+                monster.attack_player(player)
+            else:
+                continue  # Ne pas faire attaquer le monstre si la capacité n'a pas été utilisée
+            
+        elif action == "3":
             player.heal()
             monster.attack_player(player)
             
-        elif action == "3":
+        elif action == "4":
             print("Vous fuyez le combat!")
             return False
         
         if player.hp <= 0:
             print(f"\n💀 {player.name} est mort!")
             return False
+        
+        # Réduire les temps de recharge à chaque tour
+        player.reduce_cooldowns()
     
     return True
 
@@ -79,9 +99,19 @@ def main():
     print("🏰 Bienvenue dans le monde RPG! 🏰")
     
     player_name = input("Entrez le nom de votre personnage: ")
-    player = Character(player_name)
+    display_classes()
+    class_choice = input("Choisissez une classe (1-5): ")
     
-    print(f"\nBienvenue, {player.name}! Votre aventure commence...")
+    classes = get_available_classes()
+    selected_class = classes.get(class_choice)
+    
+    if selected_class:
+        player = Character(player_name, selected_class)
+        print(f"\nBienvenue, {player.name} le {selected_class.name}! Votre aventure commence...")
+    else:
+        player = Character(player_name)
+        print(f"\nClasse invalide. Bienvenue, {player.name}! Votre aventure commence...")
+    
     player.display_stats()
     
     while player.hp > 0:
@@ -89,8 +119,19 @@ def main():
         
         if choice == "1":
             player_name = input("Entrez le nom de votre nouveau personnage: ")
-            player = Character(player_name)
-            print(f"Nouveau personnage {player.name} créé!")
+            display_classes()
+            class_choice = input("Choisissez une classe (1-5): ")
+            
+            classes = get_available_classes()
+            selected_class = classes.get(class_choice)
+            
+            if selected_class:
+                player = Character(player_name, selected_class)
+                print(f"Nouveau personnage {player.name} ({selected_class.name}) créé!")
+            else:
+                player = Character(player_name)
+                print(f"Classe invalide. {player.name} créé sans classe.")
+            
             player.display_stats()
             
         elif choice == "2":
