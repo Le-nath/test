@@ -1,7 +1,7 @@
 import random
 from character import Character
 from monster import Monster
-from character_classes import get_available_classes, display_classes
+from classes import get_available_classes, display_classes
 
 
 
