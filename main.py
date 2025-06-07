@@ -171,9 +171,8 @@ def main_menu():
     print("6. Quitter")
     return input("Choisissez une option: ")
 
-def main():
-    print("🏰 Bienvenue dans le monde RPG! 🏰")
-    
+def create_new_character():
+    """Fonction pour créer un nouveau personnage"""
     player_name = input("Entrez le nom de votre personnage: ")
     display_classes()
     class_choice = input("Choisissez une classe (1-5): ")
@@ -189,55 +188,69 @@ def main():
         print(f"\nClasse invalide. Bienvenue, {player.name}! Votre aventure commence...")
     
     player.display_stats()
+    return player
+
+def game_over_menu():
+    """Menu affiché après un Game Over"""
+    print("\n💀 GAME OVER 💀")
+    print("Votre aventure se termine ici...")
+    print("\nQue voulez-vous faire?")
+    print("1. Recommencer une nouvelle partie")
+    print("2. Quitter le jeu")
+    return input("Votre choix: ")
+
+def main():
+    print("🏰 Bienvenue dans le monde RPG! 🏰")
     
-    while player.hp > 0:
-        choice = main_menu()
+    # Boucle principale du jeu
+    while True:
+        player = create_new_character()
         
-        if choice == "1":
-            player_name = input("Entrez le nom de votre nouveau personnage: ")
-            display_classes()
-            class_choice = input("Choisissez une classe (1-5): ")
+        # Boucle de jeu pour ce personnage
+        while player.hp > 0:
+            choice = main_menu()
             
-            classes = get_available_classes()
-            selected_class = classes.get(class_choice)
+            if choice == "1":
+                player = create_new_character()
+                
+            elif choice == "2":
+                player.display_stats()
+                
+            elif choice == "3":
+                monster = create_monster(player.level)
+                combat_result = combat(player, monster)
+                if not combat_result and player.hp <= 0:
+                    break
+                    
+            elif choice == "4":
+                dungeon_result = explore_dungeon(player)
+                if not dungeon_result and player.hp <= 0:
+                    break
+                    
+            elif choice == "5":
+                player.hp = player.max_hp
+                print(f"{player.name} se repose et récupère tous ses PV!")
+                
+            elif choice == "6":
+                print("Merci d'avoir joué! À bientôt!")
+                return
             
-            if selected_class:
-                player = Character(player_name, selected_class)
-                print(f"Nouveau personnage {player.name} ({selected_class.name}) créé!")
             else:
-                player = Character(player_name)
-                print(f"Classe invalide. {player.name} créé sans classe.")
-            
-            player.display_stats()
-            
-        elif choice == "2":
-            player.display_stats()
-            
-        elif choice == "3":
-            monster = create_monster(player.level)
-            combat_result = combat(player, monster)
-            if not combat_result and player.hp <= 0:
-                break
-                
-        elif choice == "4":
-            dungeon_result = explore_dungeon(player)
-            if not dungeon_result and player.hp <= 0:
-                break
-                
-        elif choice == "5":
-            player.hp = player.max_hp
-            print(f"{player.name} se repose et récupère tous ses PV!")
-            
-        elif choice == "6":
-            print("Merci d'avoir joué! À bientôt!")
-            break
+                print("Option invalide!")
         
-        else:
-            print("Option invalide!")
-    
-    if player.hp <= 0:
-        print("\n💀 GAME OVER 💀")
-        print("Votre aventure se termine ici...")
+        # Le joueur est mort, afficher le menu Game Over
+        if player.hp <= 0:
+            game_over_choice = game_over_menu()
+            
+            if game_over_choice == "1":
+                print("\n🔄 Nouvelle partie commencée!")
+                continue  # Recommencer la boucle principale
+            elif game_over_choice == "2":
+                print("Merci d'avoir joué! À bientôt!")
+                break
+            else:
+                print("Choix invalide. Fin du jeu.")
+                break
 
 if __name__ == "__main__":
     main()
