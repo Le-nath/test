@@ -159,23 +159,23 @@ def explore_room(player, room):
             actual_healing = player.hp - old_hp
             print(f"⛲ Vous trouvez une fontaine magique et récupérez {actual_healing} PV!")
 
-    elif content["type"] == "stat_boost":
-        stat = content["stat"]
-        amount = content["amount"]
-        if stat == "attack":
-            player.attack += amount
-            print(f"🌟 Une aura mystérieuse vous renforce! Attaque +{amount}")
-        elif stat == "defense":
-            player.defense += amount
-            print(f"🌟 Une aura mystérieuse vous protège! Défense +{amount}")
+        case "experience":
+            amount = content["amount"]
+            player.experience += amount
+            print(f"📚 Vous découvrez des connaissances anciennes! +{amount} XP")
 
-    elif content["type"] == "curse":
-        amount = abs(content["amount"])
-        player.max_hp = max(50, player.max_hp - amount)
-        player.hp = min(player.hp, player.max_hp)
-        print(f"😈 Une malédiction vous affaiblit! PV max -{amount}")
+        case "stat_boost":
+            stat = content["stat"]
+            amount = content["amount"]
+            if stat == "attack":
+                player.attack += amount
+                print(f"🌟 Une aura mystérieuse vous renforce! Attaque +{amount}")
+            elif stat == "defense":
+                player.defense += amount
+                print(f"🌟 Une aura mystérieuse vous protège! Défense +{amount}")
 
-    elif content["type"] == "experience":
-        amount = content["amount"]
-        player.experience += amount
-        print(f"📚 Vous découvrez des connaissances anciennes! +{amount} XP")
+        case "curse":
+            amount = abs(content["amount"])
+            player.max_hp = max(50, player.max_hp - amount)
+            player.hp = min(player.hp, player.max_hp)
+            print(f"😈 Une malédiction vous affaiblit! PV max -{amount}")

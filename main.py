@@ -4,6 +4,33 @@ from monster import Monster, create_dungeon_monster
 from classes import get_available_classes, display_classes
 from dungeon import create_dungeon, explore_room
 
+# Actions de combat
+class CombatAction:
+    ATTAQUER = "1"
+    CAPACITE_SPECIALE = "2"
+    SE_SOIGNER = "3"
+    FUIR = "4"
+
+# Actions du menu principal
+class MenuAction:
+    CREER_PERSONNAGE = "1"
+    VOIR_STATS = "2"
+    CHERCHER_MONSTRE = "3"
+    EXPLORER_DONJON = "4"
+    SE_REPOSER = "5"
+    QUITTER = "6"
+
+# Actions du donjon
+class DungeonAction:
+    AVANCER = "1"
+    RECULER = "2"
+    QUITTER_DONJON = "3"
+
+# Actions du game over
+class GameOverAction:
+    RECOMMENCER = "1"
+    QUITTER_JEU = "2"
+
 
 
 
@@ -40,7 +67,7 @@ def combat(player, monster):
         action = input("\nQue voulez-vous faire? (1: Attaquer, 2: Capacité spéciale, 3: Se soigner, 4: Fuir): ")
         
         match action:
-            case "1":
+            case CombatAction.ATTAQUER:
                 player.attack_monster(monster)
                 if monster.hp <= 0:
                     print(f"\n🎉 Vous avez vaincu {monster.name}!")
@@ -55,7 +82,7 @@ def combat(player, monster):
                 
                 monster.attack_player(player)
                 
-            case "2":
+            case CombatAction.CAPACITE_SPECIALE:
                 if player.use_special_ability(monster):
                     if monster.hp <= 0:
                         print(f"\n🎉 Vous avez vaincu {monster.name}!")
@@ -71,11 +98,11 @@ def combat(player, monster):
                 else:
                     continue  # Ne pas faire attaquer le monstre si la capacité n'a pas été utilisée
                 
-            case "3":
+            case CombatAction.SE_SOIGNER:
                 player.heal()
                 monster.attack_player(player)
                 
-            case "4":
+            case CombatAction.FUIR:
                 print("Vous fuyez le combat!")
                 return False
         
@@ -141,17 +168,17 @@ def explore_dungeon(player):
         choice = input("Votre choix: ")
         
         match choice:
-            case "1":
+            case DungeonAction.AVANCER:
                 if dungeon.advance_room():
                     print("Vous avancez vers la prochaine salle...")
                 else:
                     print("Vous ne pouvez pas aller plus loin!")
             
-            case "2" if dungeon.can_retreat():
+            case DungeonAction.RECULER if dungeon.can_retreat():
                 dungeon.retreat_room()
                 print("Vous reculez vers la salle précédente...")
             
-            case "3":
+            case DungeonAction.QUITTER_DONJON:
                 print("Vous quittez le donjon.")
                 return True
         
@@ -213,28 +240,28 @@ def main():
             choice = main_menu()
             
             match choice:
-                case "1":
+                case MenuAction.CREER_PERSONNAGE:
                     player = create_new_character()
                     
-                case "2":
+                case MenuAction.VOIR_STATS:
                     player.display_stats()
                     
-                case "3":
+                case MenuAction.CHERCHER_MONSTRE:
                     monster = create_monster(player.level)
                     combat_result = combat(player, monster)
                     if not combat_result and player.hp <= 0:
                         break
                         
-                case "4":
+                case MenuAction.EXPLORER_DONJON:
                     dungeon_result = explore_dungeon(player)
                     if not dungeon_result and player.hp <= 0:
                         break
                         
-                case "5":
+                case MenuAction.SE_REPOSER:
                     player.hp = player.max_hp
                     print(f"{player.name} se repose et récupère tous ses PV!")
                     
-                case "6":
+                case MenuAction.QUITTER:
                     print("Merci d'avoir joué! À bientôt!")
                     return
                 
@@ -246,10 +273,10 @@ def main():
             game_over_choice = game_over_menu()
             
             match game_over_choice:
-                case "1":
+                case GameOverAction.RECOMMENCER:
                     print("\n🔄 Nouvelle partie commencée!")
                     continue  # Recommencer la boucle principale
-                case "2":
+                case GameOverAction.QUITTER_JEU:
                     print("Merci d'avoir joué! À bientôt!")
                     break
                 case _:
